@@ -2,6 +2,10 @@
 
 return [
 
+    'subdomain' =>env('APP_SUBDOMAIN'),
+    
+    'service_id' => env('APP_SERVICE_ID'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Name

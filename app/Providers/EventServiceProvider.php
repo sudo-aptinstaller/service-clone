@@ -56,21 +56,32 @@ class EventServiceProvider extends ServiceProvider
 
             // dd($userData);
 
-
             $user = User::where('email', $userData['id'])->first();
-
-            if($user){
-                Auth::loginUsingId($user->id);
+            $whetherSubscribedFlag = false;
+            $subData = $userData['attributes']['Subscription'];
+            foreach($subData as $appData){
+                $processedAppData = json_decode($appData);
+                if($processedAppData->id == config('app.service_id') && $processedAppData->subdomain == config('app.subdomain')){
+                    $whetherSubscribedFlag = true;
+                }
+            }
+            if($whetherSubscribedFlag){
+                if($user){
+                    Auth::loginUsingId($user->id);
+                }else{
+             
+                    $user = new User;
+                    $user->name = $userData['attributes']['http://schemas.xmlsoap.org/claims/CommonName'][0];
+                    $user->email = $userData['attributes']['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'][0];
+                    // $user->password = $userData['attributes']['PASS_HASH'][0];
+                    $user->user_type = $userData['attributes']['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'][0];
+                    $user->user_group = $userData['attributes']['http://schemas.xmlsoap.org/claims/Group'][0];
+                    $user->save();
+    
+                    Auth::loginUsingId($user->id);
+                }
             }else{
-                $user = new User;
-                $user->name = $userData['attributes']['http://schemas.xmlsoap.org/claims/CommonName'][0];
-                $user->email = $userData['attributes']['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'][0];
-                // $user->password = $userData['attributes']['PASS_HASH'][0];
-                $user->user_type = $userData['attributes']['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'][0];
-                $user->user_group = $userData['attributes']['http://schemas.xmlsoap.org/claims/Group'][0];
-                $user->save();
-
-                Auth::loginUsingId($user->id);
+                return redirect('/');
             }
         });
 
